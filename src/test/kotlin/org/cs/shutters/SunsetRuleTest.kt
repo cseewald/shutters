@@ -88,6 +88,15 @@ class SunsetRuleTest {
         assertEquals(expectedPositionAction(), rule.resolveAction(ZonedDateTime.parse("2023-02-14T16:32:00Z")))
     }
 
+    @Test
+    fun `should return position action after sunset in specific timezone`() {
+        val rule = createRule(offset = 0)
+
+        assertEquals(Action.None, rule.resolveAction(ZonedDateTime.parse("2023-03-26T12:00:00+02:00[Europe/Berlin]")))
+        assertEquals(Action.None, rule.resolveAction(ZonedDateTime.parse("2023-03-26T18:36:00+02:00[Europe/Berlin]")))
+        assertEquals(expectedPositionAction(), rule.resolveAction(ZonedDateTime.parse("2023-03-28T19:34:00+02:00[Europe/Berlin]")))
+    }
+
     private fun expectedPositionAction() = Action.Positioning(listOf(DevicePosition(0, "id-1"), DevicePosition(0, "id-2")))
 
     private fun createRule(
