@@ -29,6 +29,7 @@ dependencies {
 
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
     implementation("org.shredzone.commons:commons-suncalc:3.5")
+    implementation("com.google.guava:guava:31.1-jre")
 }
 
 tasks.withType<KotlinCompile> {
