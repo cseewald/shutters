@@ -1,6 +1,7 @@
 package org.cs.shutters
 
 import mu.KotlinLogging
+import org.cs.shutters.apis.ShellyApiClient
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -11,7 +12,7 @@ import java.time.ZonedDateTime
 @Component
 class RuleOrchestrator(
     private val rules: List<Rule>,
-    private val shutterControl: ShutterControl,
+    private val shellyApiClient: ShellyApiClient,
     @Value("\${shutters.zone-id}") private val zoneId: String,
 ) {
 
@@ -28,7 +29,7 @@ class RuleOrchestrator(
                     action.devicePositions.forEach { dp ->
                         try {
                             log.info { "Changing to position ${dp.position} for the following device: ${dp.device}" }
-                            shutterControl.setPosition(dp.position, dp.device)
+                            shellyApiClient.setPosition(dp.position, dp.device)
                         } catch (e: WebClientResponseException) {
                             log.error(e) { "Error at setting position ${e.statusCode}, ${e.responseBodyAsString}" }
                         } catch (e: Exception) {

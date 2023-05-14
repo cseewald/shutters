@@ -11,11 +11,11 @@ import java.time.ZonedDateTime
  */
 @Component
 class SunsetRule(
-    @Value("\${shutters.rules.latitude}") private val latitude: Double,
-    @Value("\${shutters.rules.longitude}") private val longitude: Double,
+    @Value("\${shutters.latitude}") private val latitude: Double,
+    @Value("\${shutters.longitude}") private val longitude: Double,
     @Value("\${shutters.rules.sunset.offsetInMin}") private val offsetInMinutes: Long,
     @Value("\${shutters.rules.sunset.deviceIds}") private val deviceIds: List<String>,
-    @Value("\${shutters.rules.sunset.overrideTime}") private val overrideTime: String
+    @Value("\${shutters.rules.sunset.overrideTime}") private val overrideTime: String,
 ) : Rule {
 
     private val log = KotlinLogging.logger {}
