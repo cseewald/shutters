@@ -1,4 +1,5 @@
-Pet Spring Boot project written in Kotlin for controlling roller shutters via Shelly 2.5 devices.
+Pet Spring Boot project written in Kotlin for controlling roller shutters via Shelly 2.5 devices based on the sun
+position, temperature and cloudiness.
 
 # Envs for running the app
 
