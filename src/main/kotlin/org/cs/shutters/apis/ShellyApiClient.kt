@@ -3,7 +3,7 @@ package org.cs.shutters.apis
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import mu.KotlinLogging
-import org.springframework.beans.factory.annotation.Value
+import org.cs.shutters.ShuttersProperties
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
@@ -13,9 +13,7 @@ import javax.annotation.PreDestroy
 
 @Service
 class ShellyApiClient(
-    @Value("\${shutters.webclient.shelly-api.server}") shellyServer: String,
-    @Value("\${shutters.webclient.shelly-api.authorization-key}") private val shellyAuthorizationKey: String,
-    @Value("\${shutters.webclient.shelly-api.pause-between-requests-in-ms}") private val delayInMs: Long,
+    private val shuttersProperties: ShuttersProperties,
     webClientBuilder: WebClient.Builder,
 ) {
 
@@ -25,7 +23,7 @@ class ShellyApiClient(
     private lateinit var scheduler: Job
     private val taskQueue = Channel<Task>(Channel.RENDEZVOUS)
 
-    private val webClient = webClientBuilder.baseUrl(shellyServer).build()
+    private val webClient = webClientBuilder.baseUrl(shuttersProperties.apiWebclients.shellyApi.server).build()
 
     @PostConstruct
     fun startTaskScheduler() {
@@ -35,11 +33,12 @@ class ShellyApiClient(
 
                 try {
                     taskQueue.receive().execute()
+                    delay(shuttersProperties.apiWebclients.shellyApi.pauseBetweenRequestsInMs)
                 } catch (e: Exception) {
-                    log.error(e) { "Error at executing shelly request" }
+                    if (e !is CancellationException) {
+                        log.error(e) { "Error at executing shelly request" }
+                    }
                 }
-
-                delay(delayInMs)
             }
         }
     }
@@ -55,7 +54,7 @@ class ShellyApiClient(
                 webClient.post()
                     .uri("/device/status")
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                    .bodyValue("id=$deviceId&auth_key=$shellyAuthorizationKey")
+                    .bodyValue("id=$deviceId&auth_key=${shuttersProperties.apiWebclients.shellyApi.authorizationKey}")
                     .retrieve()
                     .awaitBody<String>()
             }
@@ -68,7 +67,7 @@ class ShellyApiClient(
                 webClient.post()
                     .uri("/device/relay/roller/control")
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                    .bodyValue("pos=$position&id=$deviceId&auth_key=$shellyAuthorizationKey")
+                    .bodyValue("pos=$position&id=$deviceId&auth_key=$shuttersProperties.apiWebclients.shellyApi.authorizationKey")
                     .retrieve()
                     .awaitBody<String>()
             }

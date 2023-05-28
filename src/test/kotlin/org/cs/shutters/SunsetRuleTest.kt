@@ -94,12 +94,23 @@ class SunsetRuleTest {
 
         assertEquals(Action.None, rule.resolveAction(ZonedDateTime.parse("2023-03-26T12:00:00+02:00[Europe/Berlin]")))
         assertEquals(Action.None, rule.resolveAction(ZonedDateTime.parse("2023-03-26T18:36:00+02:00[Europe/Berlin]")))
-        assertEquals(expectedPositionAction(), rule.resolveAction(ZonedDateTime.parse("2023-03-28T19:34:00+02:00[Europe/Berlin]")))
+        assertEquals(
+            expectedPositionAction(),
+            rule.resolveAction(ZonedDateTime.parse("2023-03-28T19:34:00+02:00[Europe/Berlin]"))
+        )
     }
 
-    private fun expectedPositionAction() = Action.Positioning(listOf(DevicePosition(0, "id-1"), DevicePosition(0, "id-2")))
+    private fun expectedPositionAction() =
+        Action.Positioning(listOf(DevicePosition(0, "id-1"), DevicePosition(0, "id-2")))
 
     private fun createRule(
-        offset: Long = 15
-    ) = SunsetRule(52.520008, 13.404954, offset, listOf("id-1", "id-2"), "")
+        offset: Long = 15,
+    ) = SunsetRule(
+        TestData.configuration(
+            latitude = 52.520008,
+            longitude = 13.404954,
+            offsetInMinutes = offset,
+            deviceIds = listOf("id-1", "id-2")
+        ),
+    )
 }

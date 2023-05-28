@@ -2,22 +2,15 @@ package org.cs.shutters
 
 import mu.KotlinLogging
 import org.shredzone.commons.suncalc.SunTimes
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.time.ZonedDateTime
+import javax.annotation.PostConstruct
 
 /**
  * Closes roller shutters around local sunset time
  */
 @Component
-class SunsetRule(
-    @Value("\${shutters.latitude}") private val latitude: Double,
-    @Value("\${shutters.longitude}") private val longitude: Double,
-    @Value("\${shutters.rules.sunset.offsetInMin}") private val offsetInMinutes: Long,
-    @Value("\${shutters.rules.sunset.deviceIds}") private val deviceIds: List<String>,
-    @Value("\${shutters.rules.sunset.overrideTime}") private val overrideTime: String,
-) : Rule {
-
+class SunsetRule(private val shuttersProperties: ShuttersProperties) : Rule {
     private val log = KotlinLogging.logger {}
 
     private var nextPositionChange: ZonedDateTime? = null
@@ -32,19 +25,20 @@ class SunsetRule(
         if (dateTime.isAfter(nextPositionChange)) {
             nextPositionChange = computeNextPositionChange(dateTime)
 
-            return Action.Positioning(deviceIds.map { DevicePosition(0, it) })
+            return Action.Positioning(shuttersProperties.rules.sunset.deviceIds.map { DevicePosition(0, it) })
         }
 
         return Action.None
     }
 
     private fun computeNextPositionChange(dateTime: ZonedDateTime): ZonedDateTime {
-        var next = computeSunsetTime(dateTime).plusMinutes(offsetInMinutes)
+        var next = computeSunsetTime(dateTime).plusMinutes(shuttersProperties.rules.sunset.offsetInMin)
 
         if (next.isBefore(dateTime)) {
-            next = computeSunsetTime(dateTime.plusDays(1)).plusMinutes(offsetInMinutes)
+            next = computeSunsetTime(dateTime.plusDays(1)).plusMinutes(shuttersProperties.rules.sunset.offsetInMin)
         }
 
+        val overrideTime = shuttersProperties.rules.sunset.overrideTime
         if (overrideTime.isNotEmpty() && ZonedDateTime.parse(overrideTime).isAfter(dateTime)) {
             next = ZonedDateTime.parse(overrideTime)
         }
@@ -58,9 +52,18 @@ class SunsetRule(
         return SunTimes.compute()
             .on(dateTime) // needed to inject the zone
             .on(dateTime.toLocalDate())
-            .at(latitude, longitude)
+            .at(shuttersProperties.latitude, shuttersProperties.longitude)
             .fullCycle()
             .execute()
             .set!! // since we set fullCycle we can ignore nullable here
+    }
+
+    @PostConstruct
+    fun logConfig() {
+        log.info {
+            "Configuration: latitude: ${shuttersProperties.latitude}, " +
+                    "longitude: ${shuttersProperties.longitude}, " +
+                    "${shuttersProperties.rules.sunset}"
+        }
     }
 }

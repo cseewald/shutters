@@ -2,25 +2,23 @@ package org.cs.shutters
 
 import mu.KotlinLogging
 import org.cs.shutters.apis.ShellyApiClient
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClientResponseException
-import java.time.ZoneId
 import java.time.ZonedDateTime
 
 @Component
 class RuleOrchestrator(
     private val rules: List<Rule>,
     private val shellyApiClient: ShellyApiClient,
-    @Value("\${shutters.zone-id}") private val zoneId: String,
+    private val shuttersProperties: ShuttersProperties,
 ) {
 
     private val log = KotlinLogging.logger {}
 
     @Scheduled(cron = "\${shutters.rules-execution.cron-expression}")
     fun executeRules() {
-        val now = ZonedDateTime.now(ZoneId.of(zoneId))
+        val now = ZonedDateTime.now(shuttersProperties.zoneId)
 
         rules.forEach { rule ->
             when (val action = rule.resolveAction(now)) {
