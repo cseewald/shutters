@@ -67,7 +67,7 @@ class ShellyApiClient(
                 webClient.post()
                     .uri("/device/relay/roller/control")
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                    .bodyValue("pos=$position&id=$deviceId&auth_key=$shuttersProperties.apiWebclients.shellyApi.authorizationKey")
+                    .bodyValue("pos=$position&id=$deviceId&auth_key=${shuttersProperties.apiWebclients.shellyApi.authorizationKey}")
                     .retrieve()
                     .awaitBody<String>()
             }
