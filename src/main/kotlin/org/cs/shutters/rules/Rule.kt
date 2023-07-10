@@ -1,4 +1,4 @@
-package org.cs.shutters
+package org.cs.shutters.rules
 
 import java.time.ZonedDateTime
 

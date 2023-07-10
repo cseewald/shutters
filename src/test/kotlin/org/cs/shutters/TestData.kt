@@ -3,7 +3,7 @@ package org.cs.shutters
 import java.time.ZoneId
 
 object TestData {
-    fun configuration(
+    fun configurationProperties(
         zoneId: ZoneId = ZoneId.of("UTC"),
         latitude: Double = 0.0,
         longitude: Double = 0.0,

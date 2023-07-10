@@ -1,4 +1,4 @@
-package org.cs.shutters
+package org.cs.shutters.rules
 
 sealed interface Action {
     object None : Action

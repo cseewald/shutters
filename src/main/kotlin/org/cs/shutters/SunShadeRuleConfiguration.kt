@@ -1,19 +1,19 @@
 package org.cs.shutters
 
+import org.cs.shutters.rules.SunShadeRule
 import org.springframework.beans.factory.support.BeanDefinitionBuilder
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar
 import org.springframework.core.env.Environment
 
-
+/**
+ * Allows to dynamically register a number of [SunShadeRule] beans based on application properties.
+ */
 @Configuration
 @Import(SunShadeRuleConfiguration.Registrar::class)
 class SunShadeRuleConfiguration {
 
-    /**
-     * Dynamic bean registration based on property values.
-     */
     class Registrar(private val environment: Environment) : ImportBeanDefinitionRegistrar {
         override fun registerBeanDefinitions(
             importingClassMetadata: org.springframework.core.type.AnnotationMetadata,
@@ -37,9 +37,8 @@ class SunShadeRuleConfiguration {
                 )
 
                 val beanDefinition = BeanDefinitionBuilder.genericBeanDefinition(SunShadeRule::class.java)
-                    .addConstructorArgValue(environment.getProperty("shutters.latitude")?.toDouble())
-                    .addConstructorArgValue(environment.getProperty("shutters.longitude")?.toDouble())
                     .addConstructorArgValue(sunShadeConfig)
+                    .addConstructorArgReference("sunCalculationService")
                     .addConstructorArgReference("weatherApiClient")
                     .beanDefinition
 

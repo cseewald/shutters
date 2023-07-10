@@ -24,6 +24,12 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+
+    implementation(platform("software.amazon.awssdk:bom:2.20.97"))
+    implementation("software.amazon.awssdk:cloudwatch")
+
+    implementation ("io.micrometer:micrometer-registry-cloudwatch2")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("io.mockk:mockk:1.13.5")

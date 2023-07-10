@@ -1,6 +1,8 @@
-package org.cs.shutters
+package org.cs.shutters.rules
 
 import mu.KotlinLogging
+import org.cs.shutters.ShuttersProperties
+import org.cs.shutters.apis.SunCalculationService
 import org.shredzone.commons.suncalc.SunTimes
 import org.springframework.stereotype.Component
 import java.time.ZonedDateTime
@@ -10,7 +12,10 @@ import javax.annotation.PostConstruct
  * Closes roller shutters around local sunset time
  */
 @Component
-class SunsetRule(private val shuttersProperties: ShuttersProperties) : Rule {
+class SunsetRule(
+    private val shuttersProperties: ShuttersProperties,
+    private val sunCalculationService: SunCalculationService,
+) : Rule {
     private val log = KotlinLogging.logger {}
 
     private var nextPositionChange: ZonedDateTime? = null
@@ -32,10 +37,10 @@ class SunsetRule(private val shuttersProperties: ShuttersProperties) : Rule {
     }
 
     private fun computeNextPositionChange(dateTime: ZonedDateTime): ZonedDateTime {
-        var next = computeSunsetTime(dateTime).plusMinutes(shuttersProperties.rules.sunset.offsetInMin)
+        var next = sunCalculationService.computeSunsetTime(dateTime).plusMinutes(shuttersProperties.rules.sunset.offsetInMin)
 
         if (next.isBefore(dateTime)) {
-            next = computeSunsetTime(dateTime.plusDays(1)).plusMinutes(shuttersProperties.rules.sunset.offsetInMin)
+            next = sunCalculationService.computeSunsetTime(dateTime.plusDays(1)).plusMinutes(shuttersProperties.rules.sunset.offsetInMin)
         }
 
         val overrideTime = shuttersProperties.rules.sunset.overrideTime
@@ -48,22 +53,8 @@ class SunsetRule(private val shuttersProperties: ShuttersProperties) : Rule {
         return next
     }
 
-    private fun computeSunsetTime(dateTime: ZonedDateTime): ZonedDateTime {
-        return SunTimes.compute()
-            .on(dateTime) // needed to inject the zone
-            .on(dateTime.toLocalDate())
-            .at(shuttersProperties.latitude, shuttersProperties.longitude)
-            .fullCycle()
-            .execute()
-            .set!! // since we set fullCycle we can ignore nullable here
-    }
-
     @PostConstruct
     fun logConfig() {
-        log.info {
-            "Configuration: latitude: ${shuttersProperties.latitude}, " +
-                    "longitude: ${shuttersProperties.longitude}, " +
-                    "${shuttersProperties.rules.sunset}"
-        }
+        log.info { "Configuration: ${shuttersProperties.rules.sunset}" }
     }
 }

@@ -1,5 +1,8 @@
-package org.cs.shutters
+package org.cs.shutters.rules
 
+import io.mockk.mockk
+import org.cs.shutters.TestData
+import org.cs.shutters.apis.SunCalculationService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.ZonedDateTime
@@ -105,12 +108,16 @@ class SunsetRuleTest {
 
     private fun createRule(
         offset: Long = 15,
-    ) = SunsetRule(
-        TestData.configuration(
+    ): SunsetRule {
+        val configurationProperties = TestData.configurationProperties(
             latitude = 52.520008,
             longitude = 13.404954,
             offsetInMinutes = offset,
             deviceIds = listOf("id-1", "id-2")
-        ),
-    )
+        )
+        return SunsetRule(
+            configurationProperties,
+            sunCalculationService = SunCalculationService(configurationProperties, mockk(relaxed = true))
+        )
+    }
 }

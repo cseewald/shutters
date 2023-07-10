@@ -1,7 +1,10 @@
-package org.cs.shutters
+package org.cs.shutters.rules
 
 import io.mockk.every
 import io.mockk.mockk
+import org.cs.shutters.ShuttersProperties
+import org.cs.shutters.TestData
+import org.cs.shutters.apis.SunCalculationService
 import org.cs.shutters.apis.WeatherApiClient
 import org.cs.shutters.apis.WeatherApiClient.WeatherDataContainer
 import org.cs.shutters.apis.WeatherApiClient.WeatherDataContainer.WeatherData
@@ -42,8 +45,6 @@ class SunShadeRuleTest {
         every { weatherApiClientMock.getCurrentWeather() } returns WeatherDataContainer(WeatherData(20.0, 10))
 
         return SunShadeRule(
-            latitude = 52.520008,
-            longitude = 13.404954,
             ShuttersProperties.Rules.SunShade(
                 deviceIds = listOf("id-1", "id-2"),
                 targetShadePosition = 20,
@@ -52,6 +53,10 @@ class SunShadeRuleTest {
                 minAltitude = 20.0,
                 minTempInC = 15.0,
                 maxCloudiness = 80,
+            ),
+            sunCalculationService = SunCalculationService(
+                TestData.configurationProperties(latitude = 52.520008, longitude = 13.404954),
+                mockk(relaxed = true)
             ),
             weatherApiClient = weatherApiClientMock,
         )
