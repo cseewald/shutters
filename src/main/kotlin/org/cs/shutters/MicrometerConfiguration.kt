@@ -15,12 +15,12 @@ class MicrometerConfiguration {
     @Bean
     fun meterRegistry(): MeterRegistry {
         val cloudWatchConfig: CloudWatchConfig = object : CloudWatchConfig {
-            override fun get(key: String): String? {
-                return null
-            }
+            private val configs = mapOf(
+                "${prefix()}.namespace" to "shutters-app",
+            )
 
-            override fun namespace(): String {
-                return "shutters-app"
+            override fun get(key: String): String? {
+                return configs[key]
             }
         }
 

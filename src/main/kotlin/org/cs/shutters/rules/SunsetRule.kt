@@ -3,7 +3,6 @@ package org.cs.shutters.rules
 import mu.KotlinLogging
 import org.cs.shutters.ShuttersProperties
 import org.cs.shutters.apis.SunCalculationService
-import org.shredzone.commons.suncalc.SunTimes
 import org.springframework.stereotype.Component
 import java.time.ZonedDateTime
 import javax.annotation.PostConstruct
@@ -37,10 +36,12 @@ class SunsetRule(
     }
 
     private fun computeNextPositionChange(dateTime: ZonedDateTime): ZonedDateTime {
-        var next = sunCalculationService.computeSunsetTime(dateTime).plusMinutes(shuttersProperties.rules.sunset.offsetInMin)
+        var next =
+            sunCalculationService.computeSunsetTime(dateTime).plusMinutes(shuttersProperties.rules.sunset.offsetInMin)
 
         if (next.isBefore(dateTime)) {
-            next = sunCalculationService.computeSunsetTime(dateTime.plusDays(1)).plusMinutes(shuttersProperties.rules.sunset.offsetInMin)
+            next = sunCalculationService.computeSunsetTime(dateTime.plusDays(1))
+                .plusMinutes(shuttersProperties.rules.sunset.offsetInMin)
         }
 
         val overrideTime = shuttersProperties.rules.sunset.overrideTime
