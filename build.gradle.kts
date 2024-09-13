@@ -8,9 +8,11 @@ plugins {
     kotlin("plugin.spring") version "1.6.21"
 }
 
-group = "org.cs"
-version = "0.1.0"
 java.sourceCompatibility = JavaVersion.VERSION_11
+
+tasks.jar {
+    archiveBaseName.set("shutters")
+}
 
 repositories {
     mavenCentral()
@@ -28,14 +30,14 @@ dependencies {
     implementation(platform("software.amazon.awssdk:bom:2.20.97"))
     implementation("software.amazon.awssdk:cloudwatch")
 
-    implementation ("io.micrometer:micrometer-registry-cloudwatch2")
+    implementation("io.micrometer:micrometer-registry-cloudwatch2")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("io.mockk:mockk:1.13.5")
 
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
-    implementation("org.shredzone.commons:commons-suncalc:3.5")
+    implementation("org.shredzone.commons:commons-suncalc:3.9")
 
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 }
