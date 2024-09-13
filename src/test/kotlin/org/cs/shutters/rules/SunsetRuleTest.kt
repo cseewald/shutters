@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test
 import java.time.ZonedDateTime
 
 class SunsetRuleTest {
-
     @Test
     fun `should return no action on first call at daylight`() {
         assertEquals(Action.None, createRule().resolveAction(ZonedDateTime.parse("2023-02-14T12:00:00Z")))
@@ -99,25 +98,23 @@ class SunsetRuleTest {
         assertEquals(Action.None, rule.resolveAction(ZonedDateTime.parse("2023-03-26T18:36:00+02:00[Europe/Berlin]")))
         assertEquals(
             expectedPositionAction(),
-            rule.resolveAction(ZonedDateTime.parse("2023-03-28T19:34:00+02:00[Europe/Berlin]"))
+            rule.resolveAction(ZonedDateTime.parse("2023-03-28T19:34:00+02:00[Europe/Berlin]")),
         )
     }
 
-    private fun expectedPositionAction() =
-        Action.Positioning(listOf(DevicePosition(0, "id-1"), DevicePosition(0, "id-2")))
+    private fun expectedPositionAction() = Action.Positioning(listOf(DevicePosition(0, "id-1"), DevicePosition(0, "id-2")))
 
-    private fun createRule(
-        offset: Long = 15,
-    ): SunsetRule {
-        val configurationProperties = TestData.configurationProperties(
-            latitude = 52.520008,
-            longitude = 13.404954,
-            offsetInMinutes = offset,
-            deviceIds = listOf("id-1", "id-2")
-        )
+    private fun createRule(offset: Long = 15): SunsetRule {
+        val configurationProperties =
+            TestData.configurationProperties(
+                latitude = 52.520008,
+                longitude = 13.404954,
+                offsetInMinutes = offset,
+                deviceIds = listOf("id-1", "id-2"),
+            )
         return SunsetRule(
             configurationProperties,
-            sunCalculationService = SunCalculationService(configurationProperties, mockk(relaxed = true))
+            sunCalculationService = SunCalculationService(configurationProperties, mockk(relaxed = true)),
         )
     }
 }
