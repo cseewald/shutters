@@ -1,4 +1,4 @@
-Spring Boot project written in Kotlin for controlling roller shutters via Shelly 2.5 devices based on the sun
+Personal Spring Boot pet project written in Kotlin for controlling roller shutters via Shelly 2.5 devices based on the sun
 position, temperature and cloudiness.
 
 It accesses both the [Shelly Devices API](https://shelly-api-docs.shelly.cloud/) and the [Weather API](https://openweathermap.org/api).
@@ -9,7 +9,7 @@ The application runs on a Raspberry PI at my home.
 
 ## Properties required to run the project
 
-A number of additional properties must be provided to run the application. For example a `src/main/resources/application-myhome.properties` 
+A number of additional properties not contained in the source code must be provided to run the application. For example a `src/main/resources/application-myhome.properties` 
 can be created with those properties and activated by specifying the Spring Boot profile `home`. 
 
 * `shutters.zone-id`: Local time zone
