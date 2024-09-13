@@ -1,0 +1,12 @@
+[Unit]
+Description=shutters
+After=syslog.target
+
+[Service]
+User=raspa
+ExecStart=/usr/bin/java -Dspring.profiles.active=prod -jar /home/raspa/shutters/shutters.jar
+SuccessExitStatus=143
+TimeoutStopSec=30s
+
+[Install]
+WantedBy=multi-user.target
