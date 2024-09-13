@@ -1,80 +1,101 @@
 package org.cs.shutters.apis
 
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
 import mu.KotlinLogging
 import org.cs.shutters.ShuttersProperties
+import org.cs.shutters.apis.ShellyApiClient.Task
 import org.springframework.http.MediaType
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.awaitBody
-import javax.annotation.PostConstruct
-import javax.annotation.PreDestroy
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Future
+import java.util.concurrent.LinkedBlockingQueue
 
 @Service
 class ShellyApiClient(
     private val shuttersProperties: ShuttersProperties,
     webClientBuilder: WebClient.Builder,
 ) {
-
     private val log = KotlinLogging.logger {}
-
-    // Make sure to only send Shelly commands at a certain rate
-    private lateinit var scheduler: Job
-    private val taskQueue = Channel<Task>(Channel.RENDEZVOUS)
 
     private val webClient = webClientBuilder.baseUrl(shuttersProperties.apiWebclients.shellyApi.server).build()
 
-    @PostConstruct
-    fun startTaskScheduler() {
-        scheduler = GlobalScope.launch(Dispatchers.Default) {
-            while (isActive) {
-                log.debug { "Waiting for task to execute" }
+    private val queue = LinkedBlockingQueue<Task>()
+
+    /**
+     * Make sure there is a configured delay between each API call as there is a Shelly API rate limiter
+     */
+    @Scheduled(fixedDelayString = "\${shutters.api-webclients.shelly-api.pause-between-requests-in-ms}")
+    private fun processTasks() {
+        log.debug { "Checking for Shelly Api Tasks" }
+
+        queue.take().call()
+    }
+
+    fun setPosition(
+        position: Int,
+        deviceId: String,
+    ): Future<String> {
+        val future = CompletableFuture<String>()
+
+        queue.put(
+            Task {
+                log.debug { "Invoking Shelly Api endpoint /device/relay/roller/control" }
 
                 try {
-                    taskQueue.receive().execute()
-                    delay(shuttersProperties.apiWebclients.shellyApi.pauseBetweenRequestsInMs)
+                    val body =
+                        webClient
+                            .post()
+                            .uri("/device/relay/roller/control")
+                            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                            .bodyValue("pos=$position&id=$deviceId&auth_key=${shuttersProperties.apiWebclients.shellyApi.authorizationKey}")
+                            .retrieve()
+                            .bodyToMono(String::class.java)
+                            .block()
+
+                    future.complete(body)
+
+                    log.debug { "Finished invoking Shelly Api endpoint /device/relay/roller/control. Response body: $body" }
                 } catch (e: Exception) {
-                    if (e !is CancellationException) {
-                        log.error(e) { "Error at executing shelly request" }
-                    }
+                    future.completeExceptionally(e)
                 }
-            }
-        }
+            },
+        )
+
+        return future
     }
 
-    @PreDestroy
-    fun shutdownTaskScheduler() = runBlocking {
-        scheduler.cancelAndJoin()
+    fun getStatus(deviceId: String): Future<String> {
+        val future = CompletableFuture<String>()
+
+        queue.put(
+            Task {
+                log.debug { "Invoking Shelly Api endpoint /device/status" }
+
+                try {
+                    val body =
+                        webClient
+                            .post()
+                            .uri("/device/status")
+                            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                            .bodyValue("id=$deviceId&auth_key=${shuttersProperties.apiWebclients.shellyApi.authorizationKey}")
+                            .retrieve()
+                            .bodyToMono(String::class.java)
+                            .block()
+
+                    log.debug { "Finished invoking Shelly Api endpoint /device/status with response body: $body" }
+
+                    future.complete(body)
+                } catch (e: Exception) {
+                    future.completeExceptionally(e)
+                }
+            },
+        )
+
+        return future
     }
 
-    fun getStatus(deviceId: String) = runBlocking {
-        taskQueue.send(object : Task {
-            override suspend fun execute() {
-                webClient.post()
-                    .uri("/device/status")
-                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                    .bodyValue("id=$deviceId&auth_key=${shuttersProperties.apiWebclients.shellyApi.authorizationKey}")
-                    .retrieve()
-                    .awaitBody<String>()
-            }
-        })
-    }
-
-    fun setPosition(position: Int, deviceId: String) = runBlocking {
-        taskQueue.send(object : Task {
-            override suspend fun execute() {
-                webClient.post()
-                    .uri("/device/relay/roller/control")
-                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                    .bodyValue("pos=$position&id=$deviceId&auth_key=${shuttersProperties.apiWebclients.shellyApi.authorizationKey}")
-                    .retrieve()
-                    .awaitBody<String>()
-            }
-        })
-    }
-
-    interface Task {
-        suspend fun execute()
+    private fun interface Task {
+        fun call()
     }
 }

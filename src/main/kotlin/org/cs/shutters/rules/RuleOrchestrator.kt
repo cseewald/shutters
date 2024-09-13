@@ -5,7 +5,6 @@ import org.cs.shutters.ShuttersProperties
 import org.cs.shutters.apis.ShellyApiClient
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.client.WebClientResponseException
 import java.time.ZonedDateTime
 
 @Component
@@ -14,7 +13,6 @@ class RuleOrchestrator(
     private val shellyApiClient: ShellyApiClient,
     private val shuttersProperties: ShuttersProperties,
 ) {
-
     private val log = KotlinLogging.logger {}
 
     @Scheduled(cron = "\${shutters.rules-execution.cron-expression}")
@@ -28,11 +26,10 @@ class RuleOrchestrator(
                     action.devicePositions.forEach { dp ->
                         try {
                             log.info { "Changing to position ${dp.position} for the following device: ${dp.device}" }
-                            shellyApiClient.setPosition(dp.position, dp.device)
-                        } catch (e: WebClientResponseException) {
-                            log.error(e) { "Error at setting position ${e.statusCode}, ${e.responseBodyAsString}" }
+                            val future = shellyApiClient.setPosition(dp.position, dp.device)
+                            future.get() // waiting to end or for an exception
                         } catch (e: Exception) {
-                            log.error(e) { "Error at setting position" }
+                            log.error(e) { "Error setting position" }
                         }
                     }
                 }
