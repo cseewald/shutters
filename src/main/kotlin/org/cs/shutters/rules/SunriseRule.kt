@@ -4,14 +4,13 @@ import mu.KotlinLogging
 import org.cs.shutters.ShuttersProperties
 import org.cs.shutters.apis.SunCalculationService
 import org.springframework.stereotype.Component
+import java.time.DayOfWeek
+import java.time.LocalTime
 import java.time.ZonedDateTime
 import javax.annotation.PostConstruct
 
-/**
- * Closes roller shutters around local sunset time
- */
 @Component
-class SunsetRule(
+class SunriseRule(
     private val shuttersProperties: ShuttersProperties,
     private val sunCalculationService: SunCalculationService,
 ) : Rule {
@@ -19,8 +18,11 @@ class SunsetRule(
 
     private var nextPositionChange: ZonedDateTime? = null
 
+    private val earliest = LocalTime.parse(shuttersProperties.rules.sunrise.earliest)
+    private val dayOfWeeks = shuttersProperties.rules.sunrise.dayOfWeeks.map { DayOfWeek.valueOf(it.uppercase()) }
+
     override fun resolveAction(dateTime: ZonedDateTime): Action {
-        log.debug { "Resolve action for SunsetRule at $dateTime" }
+        log.debug { "Resolve action for SunriseRule at $dateTime" }
 
         if (nextPositionChange == null) {
             nextPositionChange = computeNextPositionChange(dateTime)
@@ -30,8 +32,8 @@ class SunsetRule(
             nextPositionChange = computeNextPositionChange(dateTime)
 
             return Action.Positioning(
-                shuttersProperties.rules.sunset.deviceIds
-                    .map { DevicePosition(0, it) },
+                shuttersProperties.rules.sunrise.deviceIds
+                    .map { DevicePosition(100, it) },
             )
         }
 
@@ -39,19 +41,20 @@ class SunsetRule(
     }
 
     private fun computeNextPositionChange(dateTime: ZonedDateTime): ZonedDateTime {
-        var next =
-            sunCalculationService.computeSunsetTime(dateTime).plusMinutes(shuttersProperties.rules.sunset.offsetInMin)
+        var next = computeNextSunrise(dateTime)
 
         if (next.isBefore(dateTime)) {
-            next =
-                sunCalculationService
-                    .computeSunsetTime(dateTime.plusDays(1))
-                    .plusMinutes(shuttersProperties.rules.sunset.offsetInMin)
+            next = computeNextSunrise(dateTime.plusDays(1))
         }
 
-        val overrideTime = shuttersProperties.rules.sunset.overrideTime
-        if (overrideTime.isNotEmpty() && ZonedDateTime.parse(overrideTime).isAfter(dateTime)) {
-            next = ZonedDateTime.parse(overrideTime)
+        var plusDays = 1L
+        while (!dayOfWeeks.contains(next.dayOfWeek) && plusDays <= 7) {
+            next = computeNextSunrise(dateTime.plusDays(plusDays))
+            plusDays++
+        }
+
+        if (next.toLocalTime().isBefore(earliest)) {
+            next = next.with(earliest)
         }
 
         log.info { "Computed next position change time to $next" }
@@ -59,8 +62,13 @@ class SunsetRule(
         return next
     }
 
+    private fun computeNextSunrise(dateTime: ZonedDateTime): ZonedDateTime =
+        sunCalculationService.computeSunriseTime(dateTime).plusMinutes(shuttersProperties.rules.sunrise.offsetInMin)
+
     @PostConstruct
     fun logConfig() {
-        log.info { "Configuration: ${shuttersProperties.rules.sunset}" }
+        require(dayOfWeeks.isNotEmpty()) { "dayOfWeeks must not be empty" }
+
+        log.info { "Configuration: ${shuttersProperties.rules.sunrise}" }
     }
 }

@@ -13,7 +13,6 @@ class ShuttersProperties(
     val apiWebclients: ApiWebclients,
     val rules: Rules,
 ) {
-
     class ApiWebclients(
         val connectTimeoutInMs: Int,
         val readTimeoutInMs: Long,
@@ -33,9 +32,17 @@ class ShuttersProperties(
     }
 
     class Rules(
+        val sunrise: Sunrise,
         val sunset: Sunset,
         val sunShades: List<SunShade>,
     ) {
+        data class Sunrise(
+            val offsetInMin: Long,
+            val deviceIds: List<String>,
+            val earliest: String,
+            val dayOfWeeks: List<String>,
+        )
+
         data class Sunset(
             val offsetInMin: Long,
             val deviceIds: List<String>,

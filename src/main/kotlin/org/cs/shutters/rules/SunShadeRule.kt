@@ -27,12 +27,14 @@ class SunShadeRule(
             if (conditionsMetForShadePosition(sunPosition)) {
                 state = State.IN_SHADE_POSTION
 
-                return Action.Positioning(sunShadeConfig.deviceIds.map {
-                    DevicePosition(
-                        sunShadeConfig.targetShadePosition,
-                        it
-                    )
-                })
+                return Action.Positioning(
+                    sunShadeConfig.deviceIds.map {
+                        DevicePosition(
+                            sunShadeConfig.targetShadePosition,
+                            it,
+                        )
+                    },
+                )
             }
         } else if (state == State.IN_SHADE_POSTION) {
             if (conditionsMetToExitShadePosition(sunPosition)) {
@@ -49,18 +51,19 @@ class SunShadeRule(
         val currentWheather = weatherApiClient.getCurrentWeather().current
 
         return sunPosition.azimuth > sunShadeConfig.minAzimuth &&
-                sunPosition.azimuth < sunShadeConfig.maxAzimuth &&
-                sunPosition.altitude > sunShadeConfig.minAltitude &&
-                currentWheather.tempC > sunShadeConfig.minTempInC &&
-                currentWheather.cloud < sunShadeConfig.maxCloudiness
+            sunPosition.azimuth < sunShadeConfig.maxAzimuth &&
+            sunPosition.altitude > sunShadeConfig.minAltitude &&
+            currentWheather.tempC > sunShadeConfig.minTempInC &&
+            currentWheather.cloud < sunShadeConfig.maxCloudiness
     }
 
-    private fun conditionsMetToExitShadePosition(sunPosition: SunPosition): Boolean {
-        return sunPosition.azimuth > sunShadeConfig.maxAzimuth || sunPosition.altitude < sunShadeConfig.minAltitude
-    }
+    private fun conditionsMetToExitShadePosition(sunPosition: SunPosition): Boolean =
+        sunPosition.azimuth > sunShadeConfig.maxAzimuth || sunPosition.altitude < sunShadeConfig.minAltitude
 
     private enum class State {
-        INITIAL, IN_SHADE_POSTION, OUTSIDE_SHADE_POSITION
+        INITIAL,
+        IN_SHADE_POSTION,
+        OUTSIDE_SHADE_POSITION,
     }
 
     @PostConstruct
