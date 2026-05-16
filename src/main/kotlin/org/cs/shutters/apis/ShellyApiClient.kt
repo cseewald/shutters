@@ -1,6 +1,6 @@
 package org.cs.shutters.apis
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.cs.shutters.ShuttersProperties
 import org.cs.shutters.apis.ShellyApiClient.Task
 import org.springframework.http.MediaType

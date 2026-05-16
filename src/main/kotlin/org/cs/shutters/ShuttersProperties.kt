@@ -1,10 +1,8 @@
 package org.cs.shutters
 
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.ConstructorBinding
 import java.time.ZoneId
 
-@ConstructorBinding
 @ConfigurationProperties(prefix = "shutters")
 class ShuttersProperties(
     val zoneId: ZoneId,

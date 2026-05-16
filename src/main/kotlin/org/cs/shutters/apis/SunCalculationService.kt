@@ -2,13 +2,13 @@ package org.cs.shutters.apis
 
 import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.MeterRegistry
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.cs.shutters.ShuttersProperties
 import org.shredzone.commons.suncalc.SunPosition
 import org.shredzone.commons.suncalc.SunTimes
 import org.springframework.stereotype.Service
 import java.time.ZonedDateTime
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 @Service
 class SunCalculationService(

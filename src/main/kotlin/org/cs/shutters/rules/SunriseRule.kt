@@ -1,13 +1,13 @@
 package org.cs.shutters.rules
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.cs.shutters.ShuttersProperties
 import org.cs.shutters.apis.SunCalculationService
 import org.springframework.stereotype.Component
 import java.time.DayOfWeek
 import java.time.LocalTime
 import java.time.ZonedDateTime
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 @Component
 class SunriseRule(

@@ -1,6 +1,6 @@
 package org.cs.shutters.rules
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.cs.shutters.ShuttersProperties
 import org.cs.shutters.apis.ShellyApiClient
 import org.springframework.scheduling.annotation.Scheduled

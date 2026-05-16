@@ -1,12 +1,12 @@
 package org.cs.shutters.rules
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.cs.shutters.ShuttersProperties
 import org.cs.shutters.apis.SunCalculationService
 import org.cs.shutters.apis.WeatherApiClient
 import org.shredzone.commons.suncalc.SunPosition
 import java.time.ZonedDateTime
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 /**
  * Lowers roller shutters to block the sun

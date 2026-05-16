@@ -1,4 +1,4 @@
-FROM amazoncorretto:11
+FROM amazoncorretto:21
 WORKDIR /app
 COPY build/libs/shutters-0.1.0.jar app.jar
 
